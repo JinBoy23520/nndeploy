@@ -300,3 +300,4 @@ release/
 
 # Ignore top-level download directory (content will be ignored)
 /download/
+download/
