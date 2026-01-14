@@ -441,6 +441,56 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
   virtual base::Status run();
 };
 
+class NNDEPLOY_CC_API OpenCvImshow : public Encode {
+ public:
+  OpenCvImshow(const std::string &name)
+      : Encode(name, base::CodecFlag::kCodecFlagImage) {
+    key_ = "nndeploy::codec::OpenCvImshow";
+    desc_ = "Display image using OpenCV imshow, from cv::Mat to window display";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
+    window_name_ = "NNDeploy Display";
+  }
+  OpenCvImshow(const std::string &name, std::vector<dag::Edge *> inputs,
+               std::vector<dag::Edge *> outputs)
+      : Encode(name, inputs, outputs, base::CodecFlag::kCodecFlagImage) {
+    key_ = "nndeploy::codec::OpenCvImshow";
+    desc_ = "Display image using OpenCV imshow, from cv::Mat to window display";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
+    window_name_ = "NNDeploy Display";
+  }
+  OpenCvImshow(const std::string &name, base::CodecFlag flag)
+      : Encode(name, flag) {
+    key_ = "nndeploy::codec::OpenCvImshow";
+    desc_ = "Display image using OpenCV imshow, from cv::Mat to window display";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
+    window_name_ = "NNDeploy Display";
+  }
+  OpenCvImshow(const std::string &name, std::vector<dag::Edge *> inputs,
+               std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+      : Encode(name, inputs, outputs, flag) {
+    key_ = "nndeploy::codec::OpenCvImshow";
+    desc_ = "Display image using OpenCV imshow, from cv::Mat to window display";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
+    window_name_ = "NNDeploy Display";
+  }
+  virtual ~OpenCvImshow() {}
+
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &window_name);
+
+  virtual base::Status run();
+
+ private:
+  std::string window_name_;
+};
+
 extern NNDEPLOY_CC_API Decode *createOpenCvDecode(base::CodecFlag flag,
                                                   const std::string &name,
                                                   dag::Edge *output);

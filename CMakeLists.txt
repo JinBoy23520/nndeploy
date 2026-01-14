@@ -518,7 +518,7 @@ endif()
 # Platform-specific configuration
 if(WIN32)
     # Windows-specific configuration
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 elseif(APPLE)
     # macOS-specific configuration
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")

@@ -23,6 +23,7 @@
 #include "MNN/llm/llm.hpp"
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -60,43 +61,58 @@ namespace llm {
  */
 class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
  public:
-  MnnLlmInfer(const std::string& name) : AbstractLlmInfer(name) {}
+  MnnLlmInfer(const std::string& name) : AbstractLlmInfer(name), mnn_llm_(nullptr) {}
   MnnLlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
               std::vector<dag::Edge*> outputs)
-      : AbstractLlmInfer(name, inputs, outputs) {}
+      : AbstractLlmInfer(name, inputs, outputs), mnn_llm_(nullptr) {}
   virtual ~MnnLlmInfer() {}
 
   virtual base::Status init() override {
+    std::cout << "[MnnLlmInfer] init() called" << std::endl;
+    std::cout << "[MnnLlmInfer] config_path_ size: " << config_path_.size() << std::endl;
+    if (!config_path_.empty()) {
+      std::cout << "[MnnLlmInfer] config_path_[0]: '" << config_path_[0] << "'" << std::endl;
+    }
     std::string share_key = getShareKey();
-    auto infer =
+    auto mnn_llm_resource =
         this->getResourceWithoutState<std::shared_ptr<MNN::Transformer::Llm>>(
             share_key);
-    if (infer == nullptr) {
+    if (mnn_llm_resource == nullptr) {
+      std::cout << "[MnnLlmInfer] Creating new LLM instance..." << std::endl;
       MNN::BackendConfig backendConfig;
       executor_ = MNN::Express::Executor::newExecutor(MNN_FORWARD_CPU,
                                                       backendConfig, 1);
+      std::cout << "[MnnLlmInfer] Executor created" << std::endl;
       MNN::Express::ExecutorScope s(executor_);
 
+      // Build config file path from directory
+      std::string config_path = config_path_[0];  // Use directory path as expected by MNN
+      std::cout << "[MnnLlmInfer] Using config path: " << config_path << std::endl;
+      std::cout << "[MnnLlmInfer] Calling MNN::Transformer::Llm::createLLM..." << std::endl;
       mnn_llm_ = std::shared_ptr<MNN::Transformer::Llm>(
-          MNN::Transformer::Llm::createLLM(config_path_[0]));
-      std::cout << "config path is " << config_path_[0] << std::endl;
+          MNN::Transformer::Llm::createLLM(config_path));
+      std::cout << "[MnnLlmInfer] createLLM returned, checking result..." << std::endl;
+      if (mnn_llm_ == nullptr) {
+        std::cout << "[MnnLlmInfer] ERROR: createLLM returned nullptr!" << std::endl;
+        return base::kStatusCodeErrorInvalidParam;
+      }
+      std::cout << "[MnnLlmInfer] LLM created successfully, setting config..." << std::endl;
       mnn_llm_->set_config("{\"tmp_path\":\"tmp\"}");
+      std::cout << "[MnnLlmInfer] Config set, calling load..." << std::endl;
       {
         bool res = mnn_llm_->load();
+        std::cout << "[MnnLlmInfer] Load result: " << (res ? "true" : "false") << std::endl;
         if (!res) {
+          std::cout << "[MnnLlmInfer] ERROR: LLM load failed!" << std::endl;
           NNDEPLOY_LOGE("LLM init error\n");
           return base::kStatusCodeErrorInvalidParam;
         }
       }
-      if (true) {
-        NNDEPLOY_LOGI("Prepare for tuning opt Begin\n");
-        mnn_llm_->tuning(MNN::Transformer::OP_ENCODER_NUMBER,
-                         {1, 5, 10, 20, 30, 50, 100});
-        NNDEPLOY_LOGI("Prepare for tuning opt End\n");
-      }
+      std::cout << "[MnnLlmInfer] LLM loaded successfully" << std::endl;
+      
       this->addResourceWithoutState(share_key, mnn_llm_);
     } else {
-      mnn_llm_ = infer;
+      mnn_llm_ = mnn_llm_resource;
     }
     return base::kStatusCodeOk;
   }
@@ -209,7 +225,6 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
     }
   }
 
- private:
   // MNN相关成员变量
   std::shared_ptr<MNN::Transformer::Llm> mnn_llm_;  // MNN LLM实例
   MNN::Express::VARP output_logits_;

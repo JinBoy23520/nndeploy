@@ -9,6 +9,9 @@ if sys.platform == 'win32':
     # Windows使用PATH环境变量
     if package_dir not in os.environ.get('PATH', '').split(';'):
         os.environ['PATH'] = f"{package_dir};{os.environ.get('PATH', '')}"
+    # Python 3.8+ 需要使用 add_dll_directory
+    if hasattr(os, 'add_dll_directory'):
+        os.add_dll_directory(package_dir)
 elif sys.platform == 'darwin':
     # macOS使用DYLD_LIBRARY_PATH环境变量
     if package_dir not in os.environ.get('DYLD_LIBRARY_PATH', '').split(':'):
@@ -88,6 +91,7 @@ import nndeploy.ocr
 import nndeploy.llm
 import nndeploy.face
 import nndeploy.gan
+import nndeploy.super_resolution
 import nndeploy.diffusion
 import nndeploy.api_llm
 import nndeploy.api_aigc

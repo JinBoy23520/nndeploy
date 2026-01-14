@@ -11,6 +11,7 @@ try:
     from nndeploy.codec.codec import OpenCvImagesEncode
     from nndeploy.codec.codec import OpenCvVideoEncode
     from nndeploy.codec.codec import OpenCvCameraEncode
+    from nndeploy.codec.codec import OpenCvImshow
     from nndeploy.codec.codec import create_opencv_decode
     from nndeploy.codec.codec import create_opencv_encode
     from nndeploy.codec.codec import BatchOpenCvDecode
@@ -25,5 +26,20 @@ except ImportError:
 
 try:
     from nndeploy.codec.opencv import MakeNumpyGrid
+except ImportError:
+    pass
+
+try:
+    from nndeploy.codec.video_player import VideoPlayer
+except ImportError:
+    pass
+
+try:
+    from nndeploy.codec.side_by_side_compare import SideBySideCompare
+except ImportError:
+    pass
+
+try:
+    from nndeploy.codec.detail_zoom_compare import DetailZoomCompare
 except ImportError:
     pass

@@ -1,0 +1,478 @@
+{
+    "key_": "nndeploy.dag.Graph",
+    "name_": "视频人脸追踪超分",
+    "developer_": "auto",
+    "source_": "",
+    "desc_": "视频人脸追踪+人脸超分工作流，支持FairMOT追踪和GFPGAN人脸修复",
+    "device_type_": "kDeviceTypeCodeCpu:0",
+    "version_": "1.0.0",
+    "required_params_": [],
+    "ui_params_": {
+        "OpenCvVideoDecode_1": {
+            "path_": {
+                "component": "FileInput",
+                "props": {
+                    "label": "选择视频文件",
+                    "accept": ".mp4,.avi,.mov"
+                }
+            }
+        },
+        "OpenCvVideoEncode_8": {
+            "output": {
+                "component": "VideoPlayer",
+                "props": {
+                    "label": "视频预览"
+                }
+            }
+        }
+    },
+    "is_dynamic_input_": false,
+    "inputs_": [],
+    "is_dynamic_output_": false,
+    "outputs_": [],
+    "is_graph_": true,
+    "parallel_type_": "kParallelTypeNone",
+    "is_inner_": false,
+    "node_type_": "Intermediate",
+    "is_time_profile_": false,
+    "is_debug_": false,
+    "is_external_stream_": false,
+    "is_graph_node_share_stream_": true,
+    "queue_max_size_": 16,
+    "is_loop_max_flag_": true,
+    "loop_count_": -1,
+    "image_url_": [
+        "template[http,modelscope]@https://template.cn/template.jpg"
+    ],
+    "video_url_": [
+        "template[http,modelscope]@https://template.cn/template.mp4"
+    ],
+    "audio_url_": [
+        "template[http,modelscope]@https://template.cn/template.mp3"
+    ],
+    "model_url_": [
+        "modelscope@nndeploy/nndeploy:track/fairmot.onnx",
+        "modelscope@nndeploy/nndeploy:face_swap/GFPGANv1.4.pth"
+    ],
+    "other_url_": [
+        "template[http,modelscope]@https://template.cn/template.txt"
+    ],
+    "node_repository_": [
+        {
+            "key_": "nndeploy::codec::OpenCvVideoDecode",
+            "name_": "OpenCvVideoDecode_1",
+            "developer_": "",
+            "source_": "",
+            "desc_": "视频解码，输出帧",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [
+                "path_"
+            ],
+            "ui_params_": [
+                {
+                    "type": "file",
+                    "name": "path_",
+                    "label": "选择视频文件",
+                    "accept": ".mp4,.avi,.mov"
+                }
+            ],
+            "file_selector": true,
+            "is_dynamic_input_": false,
+            "inputs_": [],
+            "is_dynamic_output_": false,
+            "node_type_": "Input",
+            "io_type_": "Video",
+            "path_": "resources\\videos\\face.mp4",
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "OpenCvVideoDecode_1@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::track::FairMotPreProcess",
+            "name_": "FairMotPreProcess_2",
+            "developer_": "",
+            "source_": "",
+            "desc_": "FairMot预处理",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "is_dynamic_input_": false,
+            "is_dynamic_output_": false,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "OpenCvVideoDecode_1@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "FairMotPreProcess_2@output_0",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "output_1",
+                    "name_": "FairMotPreProcess_2@output_1",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "output_2",
+                    "name_": "FairMotPreProcess_2@output_2",
+                    "type_": "Tensor"
+                }
+            ],
+            "param_": {
+                "src_pixel_type_": "kPixelTypeBGR",
+                "dst_pixel_type_": "kPixelTypeRGB",
+                "h_": 320,
+                "w_": 576
+            },
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::infer::Infer",
+            "name_": "Infer_3",
+            "developer_": "",
+            "source_": "",
+            "desc_": "FairMot模型推理",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "is_dynamic_input_": true,
+            "is_dynamic_output_": true,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "FairMotPreProcess_2@output_0",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "input_1",
+                    "name_": "FairMotPreProcess_2@output_1",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "input_2",
+                    "name_": "FairMotPreProcess_2@output_2",
+                    "type_": "Tensor"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "Infer_3@output_0",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "output_1",
+                    "name_": "Infer_3@output_1",
+                    "type_": "Tensor"
+                }
+            ],
+            "type_": "kInferenceTypeOnnxRuntime",
+            "param_": {
+                "model_type_": "kModelTypeOnnx",
+                "is_path_": true,
+                "model_value_": [
+                    "resources/models/track/fairmot.onnx"
+                ],
+                "external_model_data_": [
+                    ""
+                ],
+                "device_type_": "kDeviceTypeCodeCpu:0",
+                "num_thread_": 8,
+                "gpu_tune_kernel_": 1,
+                "input_num_": 1,
+                "input_name_": [
+                    ""
+                ],
+                "input_shape_": [
+                    [
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ]
+                ],
+                "output_num_": 1,
+                "output_name_": [
+                    ""
+                ],
+                "encrypt_type_": "kEncryptTypeNone",
+                "license_": "",
+                "share_memory_mode_": "kShareMemoryTypeNoShare",
+                "precision_type_": "kPrecisionTypeFp32",
+                "power_type_": "kPowerTypeNormal",
+                "is_dynamic_shape_": false,
+                "min_shape_": {
+                    "input_0": [
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ]
+                },
+                "opt_shape_": {
+                    "input_0": [
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ]
+                },
+                "max_shape_": {
+                    "input_0": [
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ]
+                },
+                "parallel_type_": "kParallelTypeNone",
+                "worker_num_": 1
+            },
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::track::FairMotPostProcess",
+            "name_": "FairMotPostProcess_4",
+            "developer_": "",
+            "source_": "",
+            "desc_": "FairMot后处理，输出MOTResult",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "is_dynamic_input_": false,
+            "is_dynamic_output_": false,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "Infer_3@output_0",
+                    "type_": "Tensor"
+                },
+                {
+                    "desc_": "input_1",
+                    "name_": "Infer_3@output_1",
+                    "type_": "Tensor"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "FairMotPostProcess_4@output_0",
+                    "type_": "MOTResult"
+                }
+            ],
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy.gan.GFPGAN",
+            "name_": "GFPGAN_6",
+            "developer_": "",
+            "source_": "",
+            "desc_": "人脸超分修复（GFPGAN）",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [
+                "model_path_"
+            ],
+            "is_dynamic_input_": false,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "OpenCvVideoDecode_1@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "is_dynamic_output_": false,
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "GFPGAN_6@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "node_type_": "Intermediate",
+            "io_type_": "Video",
+            "model_path_": "resources/models/face_swap/GFPGANv1.4.pth",
+            "upscale_": 2,
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::track::VisMOT",
+            "name_": "VisMOT_7",
+            "developer_": "",
+            "source_": "",
+            "desc_": "可视化追踪结果，叠加人脸超分图像",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "is_dynamic_input_": false,
+            "is_dynamic_output_": false,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "GFPGAN_6@output_0",
+                    "type_": "ndarray"
+                },
+                {
+                    "desc_": "input_1",
+                    "name_": "FairMotPostProcess_4@output_0",
+                    "type_": "MOTResult"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "output_0",
+                    "name_": "VisMOT_7@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::codec::OpenCvVideoEncode",
+            "name_": "OpenCvVideoEncode_8",
+            "developer_": "",
+            "source_": "",
+            "desc_": "视频编码输出",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [
+                "path_"
+            ],
+            "ui_params_": [
+                {
+                    "type": "preview",
+                    "name": "output",
+                    "label": "视频预览"
+                }
+            ],
+            "preview": true,
+            "is_dynamic_input_": false,
+            "inputs_": [
+                {
+                    "desc_": "input_0",
+                    "name_": "VisMOT_7@output_0",
+                    "type_": "ndarray"
+                }
+            ],
+            "is_dynamic_output_": false,
+            "outputs_": [],
+            "node_type_": "Output",
+            "io_type_": "Video",
+            "path_": "resources/videos/result.face_track_face.mp4",
+            "fourcc_": "avc1",
+            "size": {
+                "width": 200,
+                "height": 80
+            },
+            "node_repository_": []
+        }
+    ],
+    "nndeploy_ui_layout": {
+        "layout": {
+            "OpenCvVideoDecode_1": {
+                "position": {
+                    "x": -192,
+                    "y": 18
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "FairMotPreProcess_2": {
+                "position": {
+                    "x": 195,
+                    "y": -102
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "Infer_3": {
+                "position": {
+                    "x": 533,
+                    "y": -42
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "FairMotPostProcess_4": {
+                "position": {
+                    "x": 945,
+                    "y": -67
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "GFPGAN_6": {
+                "position": {
+                    "x": 550,
+                    "y": 200
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "VisMOT_7": {
+                "position": {
+                    "x": 1166,
+                    "y": 169
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            },
+            "OpenCvVideoEncode_8": {
+                "position": {
+                    "x": 1497,
+                    "y": 131
+                },
+                "size": {
+                    "width": 200,
+                    "height": 80
+                },
+                "expanded": true
+            }
+        },
+        "groups": []
+    }
+}

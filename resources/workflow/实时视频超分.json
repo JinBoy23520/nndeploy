@@ -1,0 +1,124 @@
+{
+    "key_": "nndeploy.dag.Graph",
+    "name_": "实时视频超分",
+    "developer_": "auto",
+    "source_": "",
+    "desc_": "实时视频超分工作流，从视频文件读取，进行GFPGAN人脸超分，实时显示",
+    "device_type_": "kDeviceTypeCodeCpu:0",
+    "version_": "1.0.0",
+    "required_params_": [],
+    "ui_params_": {
+        "OpenCvVideoDecode_1": {
+            "path_": {
+                "component": "FileInput",
+                "props": {
+                    "label": "选择视频文件",
+                    "accept": ".mp4,.avi,.mov"
+                }
+            }
+        }
+    },
+    "is_dynamic_input_": false,
+    "inputs_": [],
+    "is_dynamic_output_": false,
+    "outputs_": [],
+    "is_graph_": true,
+    "parallel_type_": "kParallelTypeNone",
+    "is_inner_": false,
+    "node_type_": "Intermediate",
+    "is_time_profile_": false,
+    "is_debug_": false,
+    "is_external_stream_": false,
+    "is_graph_node_share_stream_": true,
+    "queue_max_size_": 16,
+    "is_loop_max_flag_": true,
+    "loop_count_": -1,
+    "image_url_": [],
+    "video_url_": [
+        "template[http,modelscope]@https://template.cn/template.mp4"
+    ],
+    "audio_url_": [],
+    "model_url_": [
+        "modelscope@nndeploy/nndeploy:face_swap/GFPGANv1.4.pth"
+    ],
+    "other_url_": [],
+    "node_repository_": [
+        {
+            "key_": "nndeploy::codec::OpenCvVideoDecode",
+            "name_": "OpenCvVideoDecode_1",
+            "developer_": "",
+            "source_": "",
+            "desc_": "视频解码，输出帧",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [
+                "path_"
+            ],
+            "ui_params_": [
+                {
+                    "type": "file",
+                    "name": "path_",
+                    "label": "选择视频文件",
+                    "accept": ".mp4,.avi,.mov"
+                }
+            ],
+            "file_selector": true,
+            "is_dynamic_input_": false,
+            "inputs_": [],
+            "is_dynamic_output_": false,
+            "outputs_": [{"desc_": "output_0", "name_": "OpenCvVideoDecode_1@output_0", "type_": "ndarray"}],
+            "node_type_": "Input",
+            "io_type_": "Video",
+            "path_": "resources/videos/face.mp4",
+            "size": {"width": 200, "height": 80},
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy.gan.GFPGAN",
+            "name_": "GFPGAN_2",
+            "developer_": "",
+            "source_": "",
+            "desc_": "人脸超分修复（GFPGAN）",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": ["model_path_"],
+            "is_dynamic_input_": false,
+            "inputs_": [{"desc_": "input_0", "name_": "OpenCvVideoDecode_1@output_0", "type_": "ndarray"}],
+            "is_dynamic_output_": false,
+            "outputs_": [{"desc_": "output_0", "name_": "GFPGAN_2@output_0", "type_": "ndarray"}],
+            "node_type_": "Intermediate",
+            "io_type_": "Image",
+            "model_path_": "resources/models/face_swap/GFPGANv1.4.pth",
+            "upscale_": 2,
+            "size": {"width": 200, "height": 80},
+            "node_repository_": []
+        },
+        {
+            "key_": "nndeploy::codec::OpenCvImshow",
+            "name_": "OpenCvImshow_3",
+            "developer_": "",
+            "source_": "",
+            "desc_": "实时显示超分视频",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [],
+            "is_dynamic_input_": false,
+            "inputs_": [{"desc_": "input_0", "name_": "GFPGAN_2@output_0", "type_": "ndarray"}],
+            "is_dynamic_output_": false,
+            "outputs_": [],
+            "node_type_": "Output",
+            "io_type_": "Display",
+            "window_name_": "Real-time Super Resolution",
+            "size": {"width": 200, "height": 80},
+            "node_repository_": []
+        }
+    ],
+    "nndeploy_ui_layout": {
+        "layout": {
+            "OpenCvVideoDecode_1": {"position": {"x": 100, "y": 100}, "size": {"width": 200, "height": 80}, "expanded": true},
+            "GFPGAN_2": {"position": {"x": 350, "y": 100}, "size": {"width": 200, "height": 80}, "expanded": true},
+            "OpenCvImshow_3": {"position": {"x": 600, "y": 100}, "size": {"width": 200, "height": 80}, "expanded": true}
+        },
+        "groups": []
+    }
+}
