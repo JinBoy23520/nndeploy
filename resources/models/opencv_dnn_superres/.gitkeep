@@ -1,0 +1,27 @@
+# 留空文件 - 确保目录被 Git 追踪
+
+此目录用于存放 OpenCV DNN 超分辨率模型文件。
+
+## 推荐模型
+
+请从以下地址下载模型文件并放置在此目录：
+
+### EDSR (推荐)
+- **EDSR_x2.pb** (38MB) - 2倍超分，高质量
+- **EDSR_x4.pb** (38MB) - 4倍超分，高质量
+
+下载地址: https://github.com/Saafke/EDSR_Tensorflow/tree/master/models
+
+### ESPCN (最快)
+- **ESPCN_x2.pb** (84KB) - 2倍超分，速度最快
+
+下载地址: https://github.com/fannymonori/TF-ESPCN/tree/master/export
+
+### FSRCNN (平衡)
+- **FSRCNN_x2.pb** (38KB) - 2倍超分，速度和质量平衡
+
+下载地址: https://github.com/Saafke/FSRCNN_Tensorflow/tree/master/models
+
+---
+
+详细下载指南请参考: [OpenCV超分模型下载指南.md](../../../OpenCV超分模型下载指南.md)

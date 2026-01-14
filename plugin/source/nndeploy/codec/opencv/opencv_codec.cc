@@ -565,11 +565,34 @@ base::Status OpenCvCameraEncode::run() {
   return base::kStatusCodeOk;
 }
 
-TypeCreatelDecodeRegister g_type_create_decode_node_register(
-    base::kCodecTypeOpenCV, createOpenCvDecode);
-TypeCreatelDecodeSharedPtrRegister
-    g_type_create_decode_node_shared_ptr_register(base::kCodecTypeOpenCV,
-                                                  createOpenCvDecodeSharedPtr);
+base::Status OpenCvImshow::init() {
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvImshow::deinit() {
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvImshow::setPath(const std::string &window_name) {
+  window_name_ = window_name;
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvImshow::setRefPath(const std::string &ref_path) {
+  // For display, ref_path is not used
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvImshow::run() {
+  cv::Mat *mat = inputs_[0]->getCvMat(this);
+  if (mat != nullptr) {
+    cv::imshow(window_name_, *mat);
+    cv::waitKey(1);  // 处理窗口事件
+  }
+  return base::kStatusCodeOk;
+}
+
+
 
 Decode *createOpenCvDecode(base::CodecFlag flag, const std::string &name,
                            dag::Edge *output) {
@@ -659,6 +682,7 @@ REGISTER_NODE("nndeploy::codec::OpenCvImageEncode", OpenCvImageEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode", OpenCvImagesEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvVideoEncode", OpenCvVideoEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode", OpenCvCameraEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvImshow", OpenCvImshow);
 
 }  // namespace codec
 }  // namespace nndeploy

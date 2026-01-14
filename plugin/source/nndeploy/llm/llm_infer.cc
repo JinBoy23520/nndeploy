@@ -46,12 +46,21 @@ base::Status LlmInfer::setPrefill(bool is_prefill) {
 int LlmInfer::getMaxSeqLen() { return llm_infer_->getMaxSeqLen(); }
 
 base::Status LlmInfer::init() {
+  std::cout << "[LlmInfer] init() called, infer_key=" << infer_key_ << ", model_key=" << model_key_ << std::endl;
+  std::cout.flush();
   llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
                                     is_prefill_);
+  std::cout << "[LlmInfer] createLlmInfer returned: " << (llm_infer_ != nullptr ? "OK" : "NULL") << std::endl;
+  std::cout.flush();
   if (llm_infer_ == nullptr) {
     NNDEPLOY_LOGE("LlmInfer::init failed\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  std::cout << "[LlmInfer] Setting config path..." << std::endl;
+  for (const auto& p : config_path_) {
+    std::cout << "[LlmInfer]   path: " << p << std::endl;
+  }
+  std::cout.flush();
   llm_infer_->setConfigPath(config_path_);
   if (llm_infer_->getInitialized()) {
     return base::kStatusCodeOk;
@@ -61,7 +70,11 @@ base::Status LlmInfer::init() {
     return base::kStatusCodeNodeInterrupt;
   }
   llm_infer_->setInitializedFlag(false);
+  std::cout << "[LlmInfer] Calling llm_infer_->init()..." << std::endl;
+  std::cout.flush();
   base::Status status = llm_infer_->init();
+  std::cout << "[LlmInfer] llm_infer_->init() returned" << std::endl;
+  std::cout.flush();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("LlmInfer::init failed\n");
     return status;

@@ -22,6 +22,10 @@ if (ENABLE_NNDEPLOY_PYBIND11)
   set(PYBIND11_ROOT ${PROJECT_SOURCE_DIR}/third_party/pybind11)
   # set(LIBS pybind11)
 
+  # 强制设置Python可执行文件为venv311
+  set(Python_EXECUTABLE "d:/jinwork/nndeploy-1/venv311/Scripts/python.exe" CACHE FILEPATH "Python executable" FORCE)
+  set(PYTHON_EXECUTABLE "d:/jinwork/nndeploy-1/venv311/Scripts/python.exe" CACHE FILEPATH "Python executable" FORCE)
+
   # 添加pybind11子目录
   # add_subdirectory(${PYBIND11_ROOT} ${LIBS})
   add_subdirectory(${PYBIND11_ROOT})
@@ -30,11 +34,11 @@ if (ENABLE_NNDEPLOY_PYBIND11)
   include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
 
   # 添加到第三方库列表
-  # find_package(Python COMPONENTS Interpreter Development REQUIRED)
-  
+  find_package(Python 3.11 COMPONENTS Interpreter Development REQUIRED)
+
   # 添加Python库到链接列表
-  # list(APPEND NNDEPLOY_THIRD_PARTY_LIBRARY ${Python_LIBRARIES})
-  # message(STATUS "Python_LIBRARIES: ${Python_LIBRARIES}")
+  list(APPEND NNDEPLOY_THIRD_PARTY_LIBRARY ${Python_LIBRARIES})
+  message(STATUS "Python_LIBRARIES: ${Python_LIBRARIES}")
   # 或者使用pybind11的方式
   # list(APPEND NNDEPLOY_THIRD_PARTY_LIBRARY pybind11::embed)
 endif()

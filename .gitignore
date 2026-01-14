@@ -161,8 +161,10 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv311
 env/
 venv/
+venv311/
 ENV/
 env.bak/
 venv.bak/
@@ -277,6 +279,16 @@ weights/
 # server/resources rule
 resources/**
 
+# 允许提交工作流配置文件
+!resources/workflow/
+!resources/workflow/*.json
+
+# 允许提交模型目录结构（但不提交模型文件）
+!resources/models/
+!resources/models/.gitkeep
+!resources/models/opencv_dnn_superres/
+!resources/models/opencv_dnn_superres/.gitkeep
+
 # # keep readme file
 # !resources/README*
 
@@ -297,3 +309,10 @@ python/logs/
 python/resources/
 
 release/
+
+**.ps1
+**.bat
+**.sh
+
+*test*.py
+*demo*.py

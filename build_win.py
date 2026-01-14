@@ -192,19 +192,19 @@ def install_third_party_libraries(generator, architecture):
     try:
         # Install OpenCV
         print("Installing OpenCV...")
-        result = run_command("python install_opencv.py --generator {generator} --architecture {architecture}", check=False)
+        result = run_command(f"python install_opencv.py --generator \"{generator}\" --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: OpenCV installation script failed")
         
         # Install ONNX Runtime
         print("Installing ONNX Runtime...")
-        result = run_command("python install_onnxruntime.py --generator {generator} --architecture {architecture}", check=False)
+        result = run_command(f"python install_onnxruntime.py --generator \"{generator}\" --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: ONNX Runtime installation failed")
         
         # Build MNN
         print("Building MNN...")
-        result = run_command("python build_mnn.py --generator {generator} --architecture {architecture}", check=False)
+        result = run_command(f"python build_mnn.py --generator \"{generator}\" --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: MNN build failed")
             

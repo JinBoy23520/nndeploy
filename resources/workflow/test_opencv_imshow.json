@@ -1,0 +1,73 @@
+{
+    "key_": "nndeploy.dag.Graph",
+    "name_": "OpenCvImshow测试",
+    "developer_": "auto",
+    "source_": "",
+    "desc_": "测试OpenCvImshow节点是否可以正常工作",
+    "device_type_": "kDeviceTypeCodeCpu:0",
+    "version_": "1.0.0",
+    "required_params_": [],
+    "ui_params_": [],
+    "is_dynamic_input_": false,
+    "inputs_": [],
+    "is_dynamic_output_": false,
+    "outputs_": [],
+    "is_graph_": true,
+    "parallel_type_": "kParallelTypeNone",
+    "is_inner_": false,
+    "node_type_": "Intermediate",
+    "is_time_profile_": false,
+    "is_debug_": false,
+    "is_external_stream_": false,
+    "is_graph_node_share_stream_": false,
+    "queue_max_size_": 1,
+    "is_loop_max_flag_": false,
+    "loop_count_": 1,
+    "image_url_": [],
+    "video_url_": [],
+    "audio_url_": [],
+    "model_url_": [],
+    "other_url_": [],
+    "node_repository_": [
+        {
+            "key_": "nndeploy::basic::InputCppNum",
+            "name_": "InputNum",
+            "developer_": "",
+            "source_": "",
+            "desc_": "输入一个数字",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [],
+            "is_dynamic_input_": false,
+            "inputs_": [],
+            "is_dynamic_output_": false,
+            "outputs_": [{"desc_": "output_0", "name_": "InputNum@output_0", "type_": "int32"}],
+            "node_type_": "Input",
+            "value_": 42
+        },
+        {
+            "key_": "nndeploy::codec::OpenCvImshow",
+            "name_": "OpenCvImshow_1",
+            "developer_": "",
+            "source_": "",
+            "desc_": "显示图像",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "version_": "1.0.0",
+            "required_params_": [],
+            "is_dynamic_input_": false,
+            "inputs_": [{"desc_": "input_0", "name_": "InputNum@output_0", "type_": "ndarray"}],
+            "is_dynamic_output_": false,
+            "outputs_": [],
+            "node_type_": "Output",
+            "window_name_": "Test Window"
+        }
+    ],
+    "edge_repository_": [
+        {
+            "key_": "nndeploy.dag.Edge",
+            "name_": "edge_0",
+            "source_": "InputNum@output_0",
+            "destination_": "OpenCvImshow_1@input_0"
+        }
+    ]
+}

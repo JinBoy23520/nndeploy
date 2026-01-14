@@ -193,6 +193,18 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("set_path", &OpenCvCameraEncode::setPath, py::arg("path"))
       .def("run", &OpenCvCameraEncode::run);
 
+  py::class_<OpenCvImshow, Encode>(m, "OpenCvImshow")
+      .def(py::init<const std::string &>())
+      .def(py::init<const std::string &, std::vector<dag::Edge *> &,
+                    std::vector<dag::Edge *> &>())
+      .def(py::init<const std::string &, base::CodecFlag>())
+      .def(py::init<const std::string &, std::vector<dag::Edge *> &,
+                    std::vector<dag::Edge *> &, base::CodecFlag>())
+      .def("init", &OpenCvImshow::init)
+      .def("deinit", &OpenCvImshow::deinit)
+      .def("set_path", &OpenCvImshow::setPath, py::arg("window_name"))
+      .def("run", &OpenCvImshow::run);
+
   m.def("create_opencv_decode", &createOpenCvDecode, py::arg("flag"),
         py::arg("name"), py::arg("output"));
   m.def("create_opencv_encode", &createOpenCvEncode, py::arg("flag"),

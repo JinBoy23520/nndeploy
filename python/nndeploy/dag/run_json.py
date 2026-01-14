@@ -130,9 +130,16 @@ def main():
         import_global_import_lib()
         logger.info(f"Loaded plugins: {args.plugin}")
 
+    # Import codec to ensure plugins are loaded
+    try:
+        import nndeploy.codec
+        logger.info("Imported nndeploy.codec")
+    except Exception as e:
+        logger.warning(f"Failed to import nndeploy.codec: {e}")
+
     # Step 3: load JSON file and run
     try:
-        with open(args.json_file, "r") as f:
+        with open(args.json_file, "r", encoding='utf-8') as f:
             graph_json_str = f.read()
     except Exception as e:
         logger.error(f"Failed to read JSON file {args.json_file}: {e}")
