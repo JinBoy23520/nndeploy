@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Allow access to files under getExternalFilesDir() -->
+    <external-files-path name="resources" path="resources/" />
+    <!-- Allow access to cache and files if needed -->
+    <cache-path name="cache" path="." />
+    <external-cache-path name="external_cache" path="." />
+    <external-path name="external" path="." />
+</paths>

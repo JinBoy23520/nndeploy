@@ -11,6 +11,8 @@
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/status.h"
 
+static std::map<jlong, std::string> g_last_errors;
+
 extern "C" {
 
 // 创建GraphRunner实例
@@ -58,8 +60,33 @@ JNIEXPORT jboolean JNICALL Java_com_nndeploy_dag_GraphRunner_run(
   env->ReleaseStringUTFChars(task_id, task_id_str);
 
   // 返回运行结果的布尔值
-  // return result.isSuccess() ? JNI_TRUE : JNI_FALSE;
-  return JNI_TRUE;
+  bool ok = true;
+  if (!result) {
+    ok = false;
+  } else {
+      if (result->status != nndeploy::base::kStatusCodeOk) {
+      ok = false;
+      // store last error message for this handle
+      std::string err = result->status.desc();
+      __android_log_print(ANDROID_LOG_ERROR, "GraphRunner", "GraphRunner run failed: %s", err.c_str());
+      // save to map
+      // Use reinterpret_cast to key by pointer value
+      g_last_errors[handle] = err;
+    }
+  }
+
+  return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+// 获取上一次运行的错误信息（如果有）
+JNIEXPORT jstring JNICALL Java_com_nndeploy_dag_GraphRunner_getLastError(
+    JNIEnv* env, jobject thiz, jlong handle) {
+  auto it = g_last_errors.find(handle);
+  if (it == g_last_errors.end()) {
+    return env->NewStringUTF("");
+  }
+  const std::string& msg = it->second;
+  return env->NewStringUTF(msg.c_str());
 }
 
 // 设置是否为JSON文件

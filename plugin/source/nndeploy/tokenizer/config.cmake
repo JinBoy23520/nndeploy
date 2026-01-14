@@ -38,6 +38,13 @@ endif()
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
 ## DIRECTORY
 set_property(TARGET ${PLUGIN_BINARY} PROPERTY FOLDER ${NNDEPLOY_PLUGIN_DIRECTORY})
+## Tokenizers-cpp (includes SentencePiece) for tokenizer_mnn
+if (NOT ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "OFF")
+  target_include_directories(${PLUGIN_BINARY} PRIVATE 
+    ${ROOT_PATH}/third_party/tokenizers-cpp/include
+    ${ROOT_PATH}/third_party/tokenizers-cpp/sentencepiece/src)
+  target_link_libraries(${PLUGIN_BINARY} tokenizers_cpp sentencepiece-static)
+endif()
 ## DEPEND_LIBRARY
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
 ## SYSTEM_LIBRARY

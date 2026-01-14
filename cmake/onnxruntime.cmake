@@ -18,6 +18,7 @@ else()
   endif()
 
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME}/include)
+  include_directories(${ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME}/include/onnxruntime)
   set(LIB_PATH ${ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME}/${NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX})
   set(LIBS "onnxruntime")
   foreach(LIB ${LIBS})

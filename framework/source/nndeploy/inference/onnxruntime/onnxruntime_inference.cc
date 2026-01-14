@@ -30,10 +30,37 @@ base::Status OnnxRuntimeInference::init() {
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =
       dynamic_cast<OnnxRuntimeInferenceParam *>(inference_param_.get());
   std::string buffer;
+  bool use_path_loading = false;
+  std::string model_path;
+  
   if (onnxruntime_inference_param->is_path_) {
     if (onnxruntime_inference_param->model_value_.size() > 0) {
-      std::string model_path = onnxruntime_inference_param->model_value_[0];
-      buffer = base::openFile(model_path);
+      model_path = onnxruntime_inference_param->model_value_[0];
+      NNDEPLOY_LOGE("Loading ONNX model from path: %s\n", model_path.c_str());
+      
+      // 如果有外部数据文件，使用路径加载（避免将 GB 级文件读入内存）
+      if (onnxruntime_inference_param->external_model_data_.size() > 0) {
+        use_path_loading = true;
+        NNDEPLOY_LOGE("External data detected, using path-based loading\n");
+        
+        // 设置外部数据目录（ONNX Runtime 会自动加载同目录下的外部数据文件）
+        size_t pos = model_path.find_last_of("/\\");
+        if (pos != std::string::npos) {
+          std::string model_dir = model_path.substr(0, pos);
+#ifdef _WIN32
+          std::wstring model_dir_w(model_dir.begin(), model_dir.end());
+          session_options_.AddConfigEntry("session.load_model_format", "ORT");
+          session_options_.AddConfigEntry("session.use_ort_model_bytes_directly", "1");
+#else
+          // Android/Linux: 确保外部数据路径可访问
+          NNDEPLOY_LOGE("Model directory: %s\n", model_dir.c_str());
+#endif
+        }
+      } else {
+        // 没有外部数据，正常加载到内存
+        buffer = base::openFile(model_path);
+        NNDEPLOY_LOGE("Model buffer size: %zu bytes\n", buffer.size());
+      }
     } else {
       NNDEPLOY_LOGE("model_value_ is empty!\n");
       return base::kStatusCodeErrorInvalidValue;
@@ -42,38 +69,27 @@ base::Status OnnxRuntimeInference::init() {
     buffer = onnxruntime_inference_param->model_value_[0];
   }
 
-#if ORT_API_VERSION >= 16
-  std::string external_bin_buffer;
-  if (onnxruntime_inference_param->is_path_) {
-    if (onnxruntime_inference_param->external_model_data_.size() > 0) {
-      std::string external_model_path =
-          onnxruntime_inference_param->external_model_data_[0];
-      external_bin_buffer = base::openFile(external_model_path);
-
-      size_t pos = external_model_path.find_last_of("/\\");
-      std::string external_data_file_name =
-          (pos == std::string::npos) ? external_model_path
-                                     : external_model_path.substr(pos + 1); 
-#ifdef _WIN32
-      std::wstring external_file_name(external_data_file_name.begin(),
-                                     external_data_file_name.end());
-      std::vector<std::wstring> file_names{external_file_name};
-#else
-      std::string external_file_name(external_data_file_name.begin(),
-          external_data_file_name.end());
-      std::vector<std::string> file_names{external_file_name};
-#endif
-      std::vector<char *> file_buffers{external_bin_buffer.data()};
-      std::vector<size_t> lengths{external_bin_buffer.size()};
-      session_options_.AddExternalInitializersFromFilesInMemory(
-          file_names, file_buffers, lengths);
-    }
-  }
-#endif
-
   OnnxRuntimeConvert::convertFromInferenceParam(*onnxruntime_inference_param,
                                                 session_options_, stream_);
-  session_ = {env_, buffer.data(), buffer.size(), session_options_};
+  try {
+    if (use_path_loading) {
+      // 直接从文件路径加载（ONNX Runtime 自动处理外部数据）
+#ifdef _WIN32
+      std::wstring model_path_w(model_path.begin(), model_path.end());
+      session_ = {env_, model_path_w.c_str(), session_options_};
+#else
+      session_ = {env_, model_path.c_str(), session_options_};
+#endif
+      NNDEPLOY_LOGE("Session created from path successfully\n");
+    } else {
+      // 从内存缓冲区加载
+      session_ = {env_, buffer.data(), buffer.size(), session_options_};
+      NNDEPLOY_LOGE("Session created from buffer successfully\n");
+    }
+  } catch (const std::exception &e) {
+    NNDEPLOY_LOGE("OnnxRuntime session creation failed: %s\n", e.what());
+    return base::kStatusCodeErrorInferenceOnnxRuntime;
+  }
 
   binding_ = std::make_shared<Ort::IoBinding>(session_);
   auto memory_info =

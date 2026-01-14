@@ -97,6 +97,7 @@ class NNDEPLOY_CC_API TokenizerEncodeMnn
 
  private:
   // @ZhaodeWang: 添加成员变量
+  void* sp_processor_ = nullptr;  // SentencePieceProcessor pointer
 };
 
 /**
@@ -152,6 +153,7 @@ class NNDEPLOY_CC_API TokenizerDecodeMnn
 
  private:
   // @ZhaodeWang: 添加成员变量
+  void* sp_processor_ = nullptr;  // SentencePieceProcessor pointer
 };
 
 }  // namespace tokenizer

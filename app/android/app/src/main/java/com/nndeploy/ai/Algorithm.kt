@@ -130,24 +130,80 @@ object AlgorithmFactory {
                 ),
                 processFunction = "processImageInImageOut"
             ),
+
+            // Demo2: YOLO-based object detection imported from external workflow
+            AIAlgorithm(
+                id = "demo2_yolo",
+                name = "Demo2 YOLO Detection",
+                description = "Imported demo2 workflow for YOLO-based object detection",
+                icon = Icons.Default.Search,
+                inputType = listOf(InOutType.IMAGE),
+                outputType = listOf(InOutType.IMAGE),
+                category = AlgorithmCategory.COMPUTER_VISION.displayName,
+                workflowAsset = "resources/workflow/demo2.json",
+                tags = listOf("yolo", "detection", "demo2"),
+                parameters = mapOf(
+                    // Map workflow input/output node names used by demo2.json
+                    "input_node" to mapOf("OpenCvImageDecode_22" to "path_"),
+                    "output_node" to mapOf("OpenCvImageEncode_23" to "path_")
+                ),
+                processFunction = "processImageInImageOut"
+            ),
             
             // Natural Language Processing Algorithms
+            // Gemma3 test workflow - No tokenizer version
             AIAlgorithm(
-                id = "text_chat",
-                name = "nndeploy Chat",
-                description = "Intelligent dialogue system based on large language models, supporting multi-turn conversations and context understanding",
+                id = "gemma3_no_tokenizer",
+                name = "Gemma3 Test (No Tokenizer)",
+                description = "Gemma3 测试版，跳过 tokenizer 以测试基础功能",
+                icon = Icons.Default.Science,
+                inputType = listOf(InOutType.PROMPT),
+                outputType = listOf(InOutType.TEXT),
+                category = AlgorithmCategory.NATURAL_LANGUAGE.displayName,
+                workflowAsset = "resources/workflow/gemma3_no_tokenizer.json",
+                tags = listOf("gemma", "test", "debug"),
+                parameters = mapOf(
+                    "input_node" to mapOf("Prompt_1" to "user_content_"),
+                    "output_node" to mapOf("LlmOut_2" to "path_"),
+                ),
+                processFunction = "processPromptInPromptOut"
+            ),
+            
+            // Gemma3 workflow (OnnxRuntime) - 270M parameter model - Simplified version
+            AIAlgorithm(
+                id = "gemma3_simple",
+                name = "Gemma3 Chat (Optimized)",
+                description = "Gemma3-270M 简化版工作流，优化启动速度和稳定性，专为 Android 优化",
                 icon = Icons.Default.QuestionAnswer,
                 inputType = listOf(InOutType.PROMPT),
                 outputType = listOf(InOutType.TEXT),
                 category = AlgorithmCategory.NATURAL_LANGUAGE.displayName,
-                workflowAsset = "resources/workflow/QwenMNN.json",
-                tags = listOf("dialogue", "chat", "Q&A"),
+                workflowAsset = "resources/workflow/gemma3_simple.json",
+                tags = listOf("gemma", "chat", "llm", "onnx", "optimized", "简化版"),
                 parameters = mapOf(
-                    "input_node" to mapOf("Prompt_4" to "user_content_"),
-                    "output_node" to mapOf("LlmOut_3" to "path_"),
+                    "input_node" to mapOf("Prompt_1" to "user_content_"),
+                    "output_node" to mapOf("LlmOut_5" to "path_"),
                 ),
                 processFunction = "processPromptInPromptOut"
             ),
+            
+            // ⚠️ Gemma3 原始完整版（需要完整插件实现，当前会崩溃）
+            // AIAlgorithm(
+            //     id = "gemma3_demo",
+            //     name = "Gemma3 Chat (Full) - ⚠️ 开发中",
+            //     description = "⚠️ 需要完整的 Gemma3 插件实现。当前使用 Qwen 适配器会导致崩溃。请使用 Gemma3 Chat (Optimized) 版本。",
+            //     icon = Icons.Default.Psychology,
+            //     inputType = listOf(InOutType.PROMPT),
+            //     outputType = listOf(InOutType.TEXT),
+            //     category = AlgorithmCategory.NATURAL_LANGUAGE.displayName,
+            //     workflowAsset = "resources/workflow/gemma3demo.json",
+            //     tags = listOf("gemma", "chat", "llm", "onnx", "full", "完整版", "实验性"),
+            //     parameters = mapOf(
+            //         "input_node" to mapOf("Prompt_4" to "user_content_"),
+            //         "output_node" to mapOf("LlmOut_3" to "path_"),
+            //     ),
+            //     processFunction = "processPromptInPromptOut"
+            // ),
             
             // Generative AI Algorithms
             // AIAlgorithm(

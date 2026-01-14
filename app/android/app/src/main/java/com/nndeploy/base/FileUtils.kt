@@ -95,6 +95,7 @@ object FileUtils {
             copyAssetDirToFiles(context, "resources", resDir)
             marker.parentFile?.mkdirs()
             marker.writeText(System.currentTimeMillis().toString())
+            Log.i("FileUtils", "External resources initialized at: $resDir")
         }
         return resDir
     }

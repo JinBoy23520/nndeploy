@@ -323,4 +323,19 @@ download/
 *demo*.py
 
 
+models/
+onnxruntime*/
+*.aar
+*.tgz
+*.zip
+build_android_arm64/
+build_android_arm/
+build_ios/  
+
+
+
+
+cmake/onnxruntime.cmake
+app/android/gradle/wrapper/gradle-wrapper.jar
+tool/script/install_opencv.py
 

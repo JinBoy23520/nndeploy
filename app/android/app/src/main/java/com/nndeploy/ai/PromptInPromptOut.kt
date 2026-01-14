@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.nndeploy.dag.GraphRunner
 import com.nndeploy.base.FileUtils
+import com.nndeploy.base.ModelPathManager
 import java.io.File
 
 /**
@@ -38,10 +39,66 @@ object PromptInPromptOut {
         context: Context, 
         prompt: String, 
         alg: AIAlgorithm,
-        conversationId: String = "default"
+        conversationId: String = "default",
+        onModelCopyProgress: ((String, Int, Int) -> Unit)? = null
     ): PromptProcessResult {
         return try {
-            Log.w("PromptInPromptOut", "Starting processing for ${alg.name}")
+            Log.w("PromptInPromptOut", "==========================================")
+            Log.w("PromptInPromptOut", "Algorithm ID: ${alg.id}")
+            Log.w("PromptInPromptOut", "Algorithm Name: ${alg.name}")
+            Log.w("PromptInPromptOut", "==========================================")
+            
+            // ⚠️ Block gemma3_demo - it will crash with current Qwen adapter
+            if (alg.id == "gemma3_demo") {
+                Log.e("PromptInPromptOut", "🚫 BLOCKED: gemma3_demo is disabled!")
+                return PromptProcessResult.Error(
+                    "⚠️ Gemma3 Chat (Full) is currently disabled.\n\n" +
+                    "Reason: gemma3demo.json uses 'model_key: Qwen' which is incompatible with Gemma3 architecture.\n" +
+                    "This causes pthread mutex errors and crashes.\n\n" +
+                    "✅ Please use 'Gemma3 Chat (Optimized)' instead.\n\n" +
+                    "Technical details:\n" +
+                    "- Qwen: 28 layers, 1 KV head\n" +
+                    "- Gemma3: 18 layers, 4 KV heads\n" +
+                    "→ Architecture mismatch → crash"
+                )
+            }
+            
+            Log.i("PromptInPromptOut", "✅ Algorithm check passed, continuing...")
+            
+            // 0) For external models (like gemma3), ensure model files are ready
+            val isGemma3 = alg.id == "gemma3_demo" || alg.id == "gemma3_simple"
+            if (isGemma3) {
+                val modelDir = ModelPathManager.getModelPath(context, "gemma3")
+                
+                // Check if model directory exists - models should be copied manually via UI button
+                if (!modelDir.exists() || modelDir.listFiles()?.isEmpty() != false) {
+                    return PromptProcessResult.Error(
+                        "Gemma3 models not found.\n\n" +
+                        "Please click the 📁 button in the top bar to copy models from the source directory.\n\n" +
+                        "Source: /sdcard/nndeploy_models/gemma3_source/\n" +
+                        "Target: ${modelDir.absolutePath}"
+                    )
+                }
+                
+                // Verify required model files exist (tokenizer.model is optional for simplified version)
+                val requiredFiles = if (alg.id == "gemma3_simple") {
+                    listOf("model.onnx", "tokenizer.json")
+                } else {
+                    listOf("model.onnx", "model.onnx_data", "tokenizer.json", "tokenizer.model")
+                }
+                
+                val missingFiles = requiredFiles.filter { !File(modelDir, it).exists() }
+                
+                if (missingFiles.isNotEmpty()) {
+                    return PromptProcessResult.Error(
+                        "Missing model files: ${missingFiles.joinToString(", ")}\n" +
+                        "Please click the 📁 button to copy models from source.\n" +
+                        "Path: ${modelDir.absolutePath}"
+                    )
+                }
+                
+                Log.i("PromptInPromptOut", "Gemma3 model files verified at: ${modelDir.absolutePath}")
+            }
             
             // 1) Ensure external resources are ready
             val extResDir = FileUtils.ensureExternalResourcesReady(context)
@@ -62,11 +119,34 @@ object PromptInPromptOut {
             // val fullPrompt = buildFullPrompt(prompt, history)
             // Log.d("PromptInPromptOut", "Full prompt with history: $fullPrompt")
             
-            // 4) Read workflow from assets and replace relative paths with external absolute paths
+            // 4) Read workflow from assets and replace paths
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
-            val resolvedJson = rawJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
-            // Print resolved JSON content
-            Log.d("PromptInPromptOut", "Resolved JSON content: $resolvedJson")
+            
+            // 4.1) FIRST: Replace model paths with external model directory paths (for large models)
+            // This must happen BEFORE generic resources/ replacement to avoid double-prefixing
+            var resolvedJson = rawJson
+            if (isGemma3) {
+                val modelPathMapping = ModelPathManager.buildGemma3PathMapping(context)
+                for ((assetPath, externalPath) in modelPathMapping) {
+                    resolvedJson = resolvedJson.replace(assetPath, externalPath.replace("\\", "/"))
+                    Log.d("PromptInPromptOut", "Mapped: $assetPath -> $externalPath")
+                }
+                Log.d("PromptInPromptOut", "Resolved JSON paths for ${alg.id}")
+            }
+            
+            // 4.2) SECOND: Replace remaining resources/ paths with external storage paths
+            resolvedJson = resolvedJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
+            
+            // DEBUG: Log the actual model_value_ and external_model_data_ after all replacements
+            val modelValuePattern = """"model_value_"\s*:\s*\[([^\]]+)]""".toRegex()
+            modelValuePattern.find(resolvedJson)?.let { match ->
+                Log.e("PromptInPromptOut", "Final model_value_ in JSON: ${match.value}")
+            }
+            
+            val externalDataPattern = """"external_model_data_"\s*:\s*\[([^\]]+)]""".toRegex()
+            externalDataPattern.find(resolvedJson)?.let { match ->
+                Log.e("PromptInPromptOut", "Final external_model_data_ in JSON: ${match.value}")
+            } ?: Log.e("PromptInPromptOut", "WARNING: No external_model_data_ found in JSON!")
             
             // 5) Write to external private directory, get real file path
             val workflowOut = File(extWorkflowDir, alg.id + "_resolved.json").apply {

@@ -55,6 +55,12 @@ if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/qwen/config.cmake)
 endif()
 
+# # gemma3
+if(ENABLE_NNDEPLOY_PLUGIN_GEMMA)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_GEMMA)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/gemma/config.cmake)
+endif()
+
 # # detect
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DETECT)
   add_definitions(-DENABLE_NNDEPLOY_PLUGIN_DETECT)

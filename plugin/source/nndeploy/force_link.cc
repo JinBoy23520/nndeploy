@@ -23,6 +23,12 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::codec::OpenCvImageDecode);
 #ifdef ENABLE_NNDEPLOY_PLUGIN_TOKENIZER
 #include "nndeploy/tokenizer/tokenizer.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncode);
+#include "nndeploy/tokenizer/tokenizer_mnn/tokenizer_mnn.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncodeMnn);
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerDecodeMnn);
+#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncodeCpp);
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerDecodeCpp);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION
@@ -38,6 +44,11 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::llm::LlmInfer);
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::llm::Decode);
 #include "nndeploy/qwen/qwen.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::qwen::PromptParam);
+#endif
+
+#ifdef ENABLE_NNDEPLOY_PLUGIN_GEMMA
+#include "nndeploy/gemma/gemma.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::gemma::Gemma3PromptParam);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_DETECT

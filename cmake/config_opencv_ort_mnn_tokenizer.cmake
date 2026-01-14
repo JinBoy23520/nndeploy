@@ -68,7 +68,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # Link OpenCV by specifying the path
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world4100") # Specific OpenCV library names to link, such as opencv_world4100, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.10.0") # Whether to link the third-party OpenCV library, default is ON
+set(ENABLE_NNDEPLOY_OPENCV "/opt/homebrew/Cellar/opencv/4.12.0_17") # Whether to link the third-party OpenCV library, default is ON
 # Includes complete functional modules such as image display, camera calibration, feature detection, and KalmanFilter tracking functionality
 set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann)
 set(NNDEPLOY_OPENCV_VERSION 4100)
@@ -77,7 +77,7 @@ set(NNDEPLOY_OPENCV_VERSION 4100)
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF
 
 ## Language Model
-set(ENABLE_NNDEPLOY_PLUGIN_LLM ON) # Whether to enable language model plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_LLM OFF) # Whether to enable language model plugin, default is OFF (requires MNN LLM module)
 
 ## Stable Diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # Whether to enable text-to-image plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # Whether to enable text-to-image plugin, default is OFF (requires LLM)

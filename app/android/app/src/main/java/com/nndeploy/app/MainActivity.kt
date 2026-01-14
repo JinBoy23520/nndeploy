@@ -25,13 +25,56 @@ import com.nndeploy.app.ui.theme.AppTheme
 import android.util.Log
 import android.net.Uri
 import com.nndeploy.ai.AlgorithmFactory
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.w("MainActivity", "onCreate called")
+        
+        // Request storage permissions
+        requestStoragePermissions()
+        
         setContent {
             AppTheme { App() }
+        }
+    }
+    
+    private fun requestStoragePermissions() {
+        val permissions = mutableListOf<String>()
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+: 需要 MANAGE_EXTERNAL_STORAGE 权限
+            if (!android.os.Environment.isExternalStorageManager()) {
+                Log.w("MainActivity", "MANAGE_EXTERNAL_STORAGE not granted, opening settings...")
+                // 跳转到设置页面让用户手动授权
+                try {
+                    val intent = android.content.Intent(
+                        android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        android.net.Uri.parse("package:$packageName")
+                    )
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    // 如果不支持，使用通用设置页面
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivity(intent)
+                }
+            }
+        } else {
+            // Android 10 and below
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+        
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), 100)
         }
     }
 }

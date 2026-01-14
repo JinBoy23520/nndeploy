@@ -4,6 +4,36 @@ class GraphRunner : AutoCloseable {
 
     companion object {
         init {
+            // Load dependencies first
+            System.loadLibrary("c++_shared")
+            System.loadLibrary("MNN")
+            System.loadLibrary("MNN_Express")
+            System.loadLibrary("opencv_java4")
+            System.loadLibrary("onnxruntime")
+            System.loadLibrary("llm")
+            
+            // Load nndeploy framework
+            System.loadLibrary("nndeploy_framework")
+            
+            // Load plugins
+            System.loadLibrary("nndeploy_plugin_basic")
+            System.loadLibrary("nndeploy_plugin_infer")
+            System.loadLibrary("nndeploy_plugin_preprocess")
+            System.loadLibrary("nndeploy_plugin_codec")
+            System.loadLibrary("nndeploy_plugin_tokenizer")
+            System.loadLibrary("nndeploy_plugin_llm")
+            System.loadLibrary("nndeploy_plugin_qwen")
+            System.loadLibrary("nndeploy_plugin_gemma")
+            System.loadLibrary("nndeploy_plugin_classification")
+            System.loadLibrary("nndeploy_plugin_detect")
+            System.loadLibrary("nndeploy_plugin_segment")
+            System.loadLibrary("nndeploy_plugin_matting")
+            System.loadLibrary("nndeploy_plugin_ocr")
+            System.loadLibrary("nndeploy_plugin_super_resolution")
+            System.loadLibrary("nndeploy_plugin_track")
+            System.loadLibrary("nndeploy_plugin_template")
+            
+            // Load JNI wrapper
             System.loadLibrary("nndeploy_jni")
         }
     }
@@ -94,7 +124,13 @@ class GraphRunner : AutoCloseable {
     // native methods
     private external fun createGraphRunner(): Long
     private external fun destroyGraphRunner(handle: Long)
-    private external fun run(handle: Long, graphJsonStr: String, name: String, taskId: String): Boolean
+    private external fun run(
+        handle: Long,
+        graphJsonStr: String,
+        name: String,
+        taskId: String
+    ): Boolean
+
     private external fun setJsonFile(handle: Long, isJsonFile: Boolean)
     private external fun setDump(handle: Long, isDump: Boolean)
     private external fun setTimeProfile(handle: Long, isTimeProfile: Boolean)
@@ -102,6 +138,18 @@ class GraphRunner : AutoCloseable {
     private external fun setParallelType(handle: Long, parallelType: Int)
     private external fun setLoopMaxFlag(handle: Long, isLoopMaxFlag: Boolean)
     private external fun setNodeValue(handle: Long, nodeName: String, key: String, value: String)
+    private external fun getLastError(handle: Long): String?
+
+    fun getLastError(): String? {
+        checkInitialized()
+        return try {
+            getLastError(nativeHandle)
+        } catch (t: Throwable) {
+            null
+        }
+    }
 }
+
+
 
 

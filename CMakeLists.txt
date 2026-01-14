@@ -645,6 +645,8 @@ endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   # set(ENABLE_NNDEPLOY_PROTOBUF ON)
+  include_directories(${ROOT_PATH}/third_party/tokenizers-cpp/include)
+  include_directories(${ROOT_PATH}/third_party/tokenizers-cpp/sentencepiece/src)
 endif()
 
 # include
