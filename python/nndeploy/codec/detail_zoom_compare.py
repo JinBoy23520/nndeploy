@@ -39,7 +39,7 @@ class DetailZoomCompare(nndeploy.dag.Node):
             return nndeploy.base.Status.ok()
         except Exception as e:
             print(f"✗ DetailZoomCompare 初始化失败: {e}")
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
         
     def run(self):
         input_edge_0 = self.get_input(0)
@@ -59,7 +59,7 @@ class DetailZoomCompare(nndeploy.dag.Node):
             if not hasattr(self, 'null_warned'):
                 print(f"[DetailZoomCompare] 警告: 收到空帧 (original={frame_original is not None}, enhanced={frame_enhanced is not None})")
                 self.null_warned = True
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
         
         try:
             # 自动检测视频 FPS（首次运行）
@@ -161,7 +161,7 @@ class DetailZoomCompare(nndeploy.dag.Node):
             key = cv2.waitKey(self.wait_key_delay_) & 0xFF
             if key == 27:
                 print("用户按下ESC，停止播放")
-                return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+                return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
             elif key == 32:
                 print("暂停（按任意键继续）")
                 cv2.waitKey(0)
@@ -181,7 +181,7 @@ class DetailZoomCompare(nndeploy.dag.Node):
             print(f"✗ DetailZoomCompare 处理失败: {e}")
             import traceback
             traceback.print_exc()
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
     
     def deinit(self):
         if self.window_created:

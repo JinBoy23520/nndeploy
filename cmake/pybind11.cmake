@@ -22,9 +22,9 @@ if (ENABLE_NNDEPLOY_PYBIND11)
   set(PYBIND11_ROOT ${PROJECT_SOURCE_DIR}/third_party/pybind11)
   # set(LIBS pybind11)
 
-  # 强制设置Python可执行文件为venv311
-  set(Python_EXECUTABLE "d:/jinwork/nndeploy-1/venv311/Scripts/python.exe" CACHE FILEPATH "Python executable" FORCE)
-  set(PYTHON_EXECUTABLE "d:/jinwork/nndeploy-1/venv311/Scripts/python.exe" CACHE FILEPATH "Python executable" FORCE)
+  # Python可执行文件路径（如果CMake未自动检测，可手动设置）
+  # set(Python_EXECUTABLE "/path/to/python" CACHE FILEPATH "Python executable" FORCE)
+  # set(PYTHON_EXECUTABLE "/path/to/python" CACHE FILEPATH "Python executable" FORCE)
 
   # 添加pybind11子目录
   # add_subdirectory(${PYBIND11_ROOT} ${LIBS})

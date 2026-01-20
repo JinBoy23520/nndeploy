@@ -205,6 +205,74 @@ object AlgorithmFactory {
             //     processFunction = "processPromptInPromptOut"
             // ),
             
+            // Super Resolution Algorithms
+            AIAlgorithm(
+                id = "realesrgan_sr",
+                name = "RealESRGAN 超分",
+                description = "使用 RealESRGAN 进行图像超分辨率（2倍放大），提升图像清晰度和细节",
+                icon = Icons.Default.PhotoSizeSelectLarge,
+                inputType = listOf(InOutType.IMAGE),
+                outputType = listOf(InOutType.IMAGE),
+                category = AlgorithmCategory.COMPUTER_VISION.displayName,
+                workflowAsset = "resources/workflow/realtime_sr_realesrgan_android.json",
+                tags = listOf("super resolution", "enhancement", "realesrgan", "超分"),
+                parameters = mapOf(
+                    "input_node" to mapOf("ImageInput" to "path_"),
+                    "output_node" to mapOf("ImageOutput" to "path_"),
+                ),
+                processFunction = "processImageInImageOut"
+            ),
+            AIAlgorithm(
+                id = "opencv_sr",
+                name = "OpenCV 超分",
+                description = "使用 OpenCV Lanczos+锐化进行图像超分辨率（2倍放大），轻量快速",
+                icon = Icons.Default.HighQuality,
+                inputType = listOf(InOutType.IMAGE),
+                outputType = listOf(InOutType.IMAGE),
+                category = AlgorithmCategory.COMPUTER_VISION.displayName,
+                workflowAsset = "resources/workflow/realtime_sr_opencv_android.json",
+                tags = listOf("super resolution", "opencv", "lanczos", "超分"),
+                parameters = mapOf(
+                    "input_node" to mapOf("ImageInput" to "path_"),
+                    "output_node" to mapOf("ImageOutput" to "path_"),
+                ),
+                processFunction = "processImageInImageOut"
+            ),
+            
+            // Video Super Resolution with Comparison
+            AIAlgorithm(
+                id = "video_sr_opencv_compare",
+                name = "视频超分对比 - OpenCV",
+                description = "使用 OpenCV 超分处理视频并左右对比显示原始和超分效果",
+                icon = Icons.Default.CompareArrows,
+                inputType = listOf(InOutType.VIDEO),
+                outputType = listOf(InOutType.VIDEO),
+                category = AlgorithmCategory.COMPUTER_VISION.displayName,
+                workflowAsset = "resources/workflow/video_sr_opencv_compare_android.json",
+                tags = listOf("video", "super resolution", "comparison", "视频超分", "对比"),
+                parameters = mapOf(
+                    "input_node" to mapOf("VideoInput" to "path_"),
+                    "output_node" to mapOf("CompareOutput" to "output_path_"),
+                ),
+                processFunction = "processVideoInVideoOut"
+            ),
+            AIAlgorithm(
+                id = "video_sr_realesrgan_compare",
+                name = "视频超分对比 - RealESRGAN",
+                description = "使用 RealESRGAN 超分处理视频并左右对比显示原始和超分效果",
+                icon = Icons.Default.CompareArrows,
+                inputType = listOf(InOutType.VIDEO),
+                outputType = listOf(InOutType.VIDEO),
+                category = AlgorithmCategory.COMPUTER_VISION.displayName,
+                workflowAsset = "resources/workflow/video_sr_realesrgan_compare_android.json",
+                tags = listOf("video", "super resolution", "comparison", "realesrgan", "视频超分", "对比"),
+                parameters = mapOf(
+                    "input_node" to mapOf("VideoInput" to "path_"),
+                    "output_node" to mapOf("CompareOutput" to "output_path_"),
+                ),
+                processFunction = "processVideoInVideoOut"
+            ),
+            
             // Generative AI Algorithms
             // AIAlgorithm(
             //     id = "text_to_image",

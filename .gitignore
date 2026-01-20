@@ -162,9 +162,14 @@ celerybeat.pid
 .env
 .venv
 .venv311
+.venv-py311
+
 env/
 venv/
 venv311/
+venv-py311/
+
+
 ENV/
 env.bak/
 venv.bak/
@@ -338,4 +343,8 @@ build_ios/
 cmake/onnxruntime.cmake
 app/android/gradle/wrapper/gradle-wrapper.jar
 tool/script/install_opencv.py
+
+*.cmake
+build-py311/
+cmake/pybind11.cmake
 

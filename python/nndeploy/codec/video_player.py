@@ -28,14 +28,31 @@ class VideoPlayer(nndeploy.dag.Node):
         
     def init(self):
         try:
-            cv2.namedWindow(self.window_name_, cv2.WINDOW_NORMAL)
-            cv2.resizeWindow(self.window_name_, 960, 540)
+            import platform
+            import os
+            
+            # macOS 特殊处理
+            if platform.system() == 'Darwin':
+                # 启动 OpenCV 窗口线程（macOS 必需）
+                cv2.startWindowThread()
+                # macOS 上使用 WINDOW_AUTOSIZE 更稳定
+                cv2.namedWindow(self.window_name_, cv2.WINDOW_AUTOSIZE)
+                print(f"✓ VideoPlayer 窗口已创建 (macOS): {self.window_name_}")
+            else:
+                # Windows/Linux 使用可调整大小的窗口
+                cv2.namedWindow(self.window_name_, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(self.window_name_, 960, 540)
+                print(f"✓ VideoPlayer 窗口已创建: {self.window_name_}")
+            
             self.window_created = True
-            print(f"✓ VideoPlayer 窗口已创建: {self.window_name_}")
             return nndeploy.base.Status.ok()
+            
         except Exception as e:
-            print(f"✗ VideoPlayer 初始化失败: {e}")
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            print(f"⚠ VideoPlayer 窗口创建失败: {e}")
+            print(f"  将继续处理但不显示窗口（可能运行在后台服务中）")
+            self.window_created = False
+            # 允许继续运行，只是不显示窗口
+            return nndeploy.base.Status.ok()
         
     def run(self):
         input_edge = self.get_input(0)
@@ -51,7 +68,7 @@ class VideoPlayer(nndeploy.dag.Node):
             if not hasattr(self, 'null_warned'):
                 print(f"[VideoPlayer] 警告: 收到空帧")
                 self.null_warned = True
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
         
         try:
             # 自动检测视频 FPS（首次运行）
@@ -93,15 +110,17 @@ class VideoPlayer(nndeploy.dag.Node):
                 else:
                     display_frame = input_frame
             
-            cv2.imshow(self.window_name_, display_frame)
-            
-            key = cv2.waitKey(self.wait_key_delay_) & 0xFF
-            if key == 27:
-                print("用户按下ESC，停止播放")
-                return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
-            elif key == 32:
-                print("暂停（按任意键继续）")
-                cv2.waitKey(0)
+            # 仅在窗口存在时显示
+            if self.window_created:
+                cv2.imshow(self.window_name_, display_frame)
+                
+                key = cv2.waitKey(self.wait_key_delay_) & 0xFF
+                if key == 27:
+                    print("用户按下ESC，停止播放")
+                    return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
+                elif key == 32:
+                    print("暂停（按任意键继续）")
+                    cv2.waitKey(0)
             
             if self.fps_ > 0:
                 target_delay = 1.0 / self.fps_
@@ -115,7 +134,7 @@ class VideoPlayer(nndeploy.dag.Node):
             print(f"✗ VideoPlayer 播放失败: {e}")
             import traceback
             traceback.print_exc()
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
     
     def deinit(self):
         if self.window_created:

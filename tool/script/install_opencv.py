@@ -31,10 +31,21 @@ url = f"https://github.com/opencv/opencv/archive/refs/tags/{OPENCV_VER}.zip"
 filename = url.split('/')[-1]
 
 print(f"Downloading OpenCV {OPENCV_VER}...")
+print(f"URL: {url}")
 response = requests.get(url, stream=True)
+total_size = int(response.headers.get('content-length', 0))
+downloaded = 0
+print(f"Total size: {total_size / (1024*1024):.1f} MB")
+
 with open(filename, 'wb') as f:
     for chunk in response.iter_content(chunk_size=8192):
-        f.write(chunk)
+        if chunk:
+            f.write(chunk)
+            downloaded += len(chunk)
+            if total_size > 0:
+                percent = (downloaded / total_size) * 100
+                print(f"\rProgress: {downloaded / (1024*1024):.1f} MB / {total_size / (1024*1024):.1f} MB ({percent:.1f}%)", end='', flush=True)
+print()  # New line after download
 
 # Extract source code
 print("Extracting source code...")

@@ -163,7 +163,29 @@ base::Status OpenCvImagesDecode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVideoDecode::init() { return base::kStatusCodeOk; }
+base::Status OpenCvVideoDecode::init() {
+  // 如果path_已经在参数反序列化时设置，需要在init时打开视频
+  if (!path_.empty() && cap_ == nullptr) {
+    if (!base::exists(path_)) {
+      NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    cap_ = new cv::VideoCapture();
+    if (!cap_->open(path_)) {
+      NNDEPLOY_LOGE("can not open video file %s\n", path_.c_str());
+      delete cap_;
+      cap_ = nullptr;
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
+    fps_ = cap_->get(cv::CAP_PROP_FPS);
+    width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
+    height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
+    loop_count_ = size_;
+    NNDEPLOY_LOGI("Video opened: %d frames, %.2f fps, %dx%d\n", size_, fps_, width_, height_);
+  }
+  return base::kStatusCodeOk;
+}
 base::Status OpenCvVideoDecode::deinit() {
   if (cap_ != nullptr) {
     cap_->release();
@@ -174,6 +196,7 @@ base::Status OpenCvVideoDecode::deinit() {
 }
 
 base::Status OpenCvVideoDecode::setPath(const std::string &path) {
+  NNDEPLOY_LOGI("OpenCvVideoDecode::setPath called with path: %s\n", path.c_str());
   if (parallel_type_ == base::kParallelTypePipeline) {
     std::lock_guard<std::mutex> lock(path_mutex_);
     path_ = path;
@@ -202,6 +225,7 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     path_ready_ = true;     // 设置标志
     path_cv_.notify_one();  // 通知等待的线程
   } else {
+    NNDEPLOY_LOGI("OpenCvVideoDecode::setPath (non-pipeline) with path: %s\n", path.c_str());
     path_ = path;
     if (!base::exists(path_)) {
       NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
@@ -215,6 +239,7 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     }
     path_changed_ = true;
     cap_ = new cv::VideoCapture();
+    NNDEPLOY_LOGI("Opening video file: %s\n", path_.c_str());
     if (!cap_->open(path_)) {
       NNDEPLOY_LOGE("can not open video file %s\n", path_.c_str());
       delete cap_;
@@ -226,39 +251,53 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
     path_ready_ = true;  // 设置标志
+    NNDEPLOY_LOGI("Video opened successfully: %d frames, %.2f fps, %dx%d\n", size_, fps_, width_, height_);
   }
   // NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
   // NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
   // NNDEPLOY_LOGE("Video width_: %d.\n", width_);
   // NNDEPLOY_LOGE("Video height_: %d.\n", height_);
+  
+  // 如果帧数未知（CAP_PROP_FRAME_COUNT返回0，常见于某些Android视频格式）
+  // 设置一个大值，让run()方法动态读取直到视频结束
+  if (size_ <= 0) {
+    size_ = 999999;  // 设置一个大值作为上限
+    NNDEPLOY_LOGI("Frame count unknown, using dynamic frame reading with max limit: %d\n", size_);
+  }
   loop_count_ = size_;
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvVideoDecode::run() {
-  // while (path_.empty() && parallel_type_ == base::kParallelTypePipeline) {
-  //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
-  //   ;
-  // }
   if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(path_mutex_);
-    // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
   }
-  if (index_ < size_) {
-    cv::Mat *mat = new cv::Mat();
-    cap_->read(*mat);
+  
+  // 检查cap_是否有效
+  if (cap_ == nullptr || !cap_->isOpened()) {
+    NNDEPLOY_LOGW("VideoCapture is not opened\n");
+    return base::kStatusCodeOk;
+  }
+  
+  // 尝试读取帧，而不依赖size_（因为某些视频格式CAP_PROP_FRAME_COUNT返回0）
+  cv::Mat *mat = new cv::Mat();
+  bool success = cap_->read(*mat);
+  
+  if (success && !mat->empty()) {
     outputs_[0]->set(mat, false);
-    // std::string name = "input_" + std::to_string(index_) + ".jpg";
-    // std::string full_path = base::joinPath("./", name);
-    // cv::imwrite(full_path, *mat);
     index_++;
-    if (index_ == size_) {
+  } else {
+    // 读取失败或到达视频末尾
+    delete mat;
+    if (cap_->isOpened()) {
       cap_->release();
     }
-  } else {
-    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
-                  index_, size_);
+    NNDEPLOY_LOGI("Video playback finished at frame %d\n", index_);
+    // 当视频结束时，更新size_和loop_count_为实际帧数
+    // 这样updateInput()会返回kEdgeUpdateFlagTerminate，停止Graph执行
+    size_ = index_;
+    loop_count_ = index_;
   }
 
   return base::kStatusCodeOk;
@@ -584,11 +623,16 @@ base::Status OpenCvImshow::setRefPath(const std::string &ref_path) {
 }
 
 base::Status OpenCvImshow::run() {
+#ifndef __ANDROID__
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   if (mat != nullptr) {
     cv::imshow(window_name_, *mat);
     cv::waitKey(1);  // 处理窗口事件
   }
+#else
+  // Android does not support cv::imshow
+  NNDEPLOY_LOGI("OpenCvImshow is not supported on Android platform.\n");
+#endif
   return base::kStatusCodeOk;
 }
 
@@ -682,7 +726,9 @@ REGISTER_NODE("nndeploy::codec::OpenCvImageEncode", OpenCvImageEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode", OpenCvImagesEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvVideoEncode", OpenCvVideoEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode", OpenCvCameraEncode);
+#ifndef __ANDROID__
 REGISTER_NODE("nndeploy::codec::OpenCvImshow", OpenCvImshow);
+#endif
 
 }  // namespace codec
 }  // namespace nndeploy

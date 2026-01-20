@@ -26,9 +26,11 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncode);
 #include "nndeploy/tokenizer/tokenizer_mnn/tokenizer_mnn.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncodeMnn);
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerDecodeMnn);
+#ifdef ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncodeCpp);
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerDecodeCpp);
+#endif
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION

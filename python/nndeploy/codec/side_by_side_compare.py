@@ -33,13 +33,30 @@ class SideBySideCompare(nndeploy.dag.Node):
         
     def init(self):
         try:
-            cv2.namedWindow(self.window_name_, cv2.WINDOW_NORMAL)
+            import platform
+            import os
+            
+            # macOS 特殊处理
+            if platform.system() == 'Darwin':
+                # 启动 OpenCV 窗口线程（macOS 必需）
+                cv2.startWindowThread()
+                # macOS 上使用 WINDOW_AUTOSIZE 更稳定
+                cv2.namedWindow(self.window_name_, cv2.WINDOW_AUTOSIZE)
+                print(f"✓ SideBySideCompare 窗口已创建 (macOS): {self.window_name_}")
+            else:
+                # Windows/Linux 使用可调整大小的窗口
+                cv2.namedWindow(self.window_name_, cv2.WINDOW_NORMAL)
+                print(f"✓ SideBySideCompare 窗口已创建: {self.window_name_}")
+            
             self.window_created = True
-            print(f"✓ SideBySideCompare 窗口已创建: {self.window_name_}")
             return nndeploy.base.Status.ok()
+            
         except Exception as e:
-            print(f"✗ SideBySideCompare 初始化失败: {e}")
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            print(f"⚠ SideBySideCompare 窗口创建失败: {e}")
+            print(f"  将继续处理但不显示窗口（可能运行在后台服务中）")
+            self.window_created = False
+            # 允许继续运行，只是不显示窗口
+            return nndeploy.base.Status.ok()
         
     def run(self):
         # 获取两个输入
@@ -60,7 +77,7 @@ class SideBySideCompare(nndeploy.dag.Node):
             if not hasattr(self, 'null_warned'):
                 print(f"[SideBySideCompare] 警告: 收到空帧 (original={frame_original is not None}, enhanced={frame_enhanced is not None})")
                 self.null_warned = True
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
         
         try:
             # 自动检测视频 FPS（首次运行）
@@ -155,16 +172,18 @@ class SideBySideCompare(nndeploy.dag.Node):
                        (combined.shape[1]//2 - 50, 28),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
             
-            cv2.imshow(self.window_name_, combined)
-            
-            # 键盘控制
-            key = cv2.waitKey(self.wait_key_delay_) & 0xFF
-            if key == 27:  # ESC
-                print("用户按下ESC，停止播放")
-                return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
-            elif key == 32:  # Space
-                print("暂停（按任意键继续）")
-                cv2.waitKey(0)
+            # 仅在窗口存在时显示
+            if self.window_created:
+                cv2.imshow(self.window_name_, combined)
+                
+                # 键盘控制
+                key = cv2.waitKey(self.wait_key_delay_) & 0xFF
+                if key == 27:  # ESC
+                    print("用户按下ESC，停止播放")
+                    return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
+                elif key == 32:  # Space
+                    print("暂停（按任意键继续）")
+                    cv2.waitKey(0)
             
             # 帧率控制 - 根据目标 FPS 延迟
             if self.fps_ > 0:
@@ -181,7 +200,7 @@ class SideBySideCompare(nndeploy.dag.Node):
             print(f"✗ SideBySideCompare 处理失败: {e}")
             import traceback
             traceback.print_exc()
-            return nndeploy.base.Status(nndeploy.base.StatusCode.kStatusCodeErrorInvalidParam)
+            return nndeploy.base.Status(nndeploy.base.StatusCode.ErrorInvalidParam)
     
     def deinit(self):
         if self.window_created:

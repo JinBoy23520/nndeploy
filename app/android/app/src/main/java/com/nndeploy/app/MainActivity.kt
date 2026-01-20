@@ -139,6 +139,11 @@ fun App() {
                 CVResultScreen(nav, sharedAIViewModel) 
             }
             
+            // Video Super Resolution Screen
+            composable("video_sr_screen") {
+                VideoSuperResolutionScreen()
+            }
+            
             // Mine page
             composable("mine") { MineScreen(nav) }
         }

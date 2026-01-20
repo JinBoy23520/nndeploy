@@ -217,7 +217,12 @@ fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel())
                         algorithm = algorithm,
                         onClick = {
                             vm.selectedAlgorithm = algorithm
-                            nav.navigate("ai_process/${algorithm.id}")
+                            // 视频超分对比算法特殊处理
+                            if (algorithm.id.contains("video_sr") && algorithm.id.contains("compare")) {
+                                nav.navigate("video_sr_screen")
+                            } else {
+                                nav.navigate("ai_process/${algorithm.id}")
+                            }
                         }
                     )
                 }

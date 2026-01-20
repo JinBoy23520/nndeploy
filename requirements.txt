@@ -35,14 +35,20 @@ accelerate
 diffusers
 transformers>=4.51.0
 
-## triton
-triton>=3.0.0
+## triton (Linux only)
+triton>=3.0.0; sys_platform == 'linux'
 
-## flash-attn
-flash-attn
+## flash-attn (Linux/Windows only)
+flash-attn; sys_platform != 'darwin'
 
 ## xxhash
 xxhash>=3.0.0
+
+## super resolution - RealESRGAN, GFPGAN
+basicsr>=1.4.2
+facexlib>=0.3.0
+gfpgan>=1.3.8
+realesrgan>=0.3.0
 
 
 
